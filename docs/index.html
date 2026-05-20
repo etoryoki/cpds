@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPDS — Content Provenance and Delegation Standard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F2EBDD;
+  --bg-secondary: #E8DFCC;
+  --ink: #1A1714;
+  --ink-soft: #4A413A;
+  --ink-muted: #8A7F70;
+  --accent: #B53A22;
+  --accent-deep: #7A2818;
+  --teal: #1F4548;
+  --rule: #C8BFA8;
+  --paper-edge: rgba(26, 23, 20, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.65;
+  font-weight: 380;
+  letter-spacing: 0.005em;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(181, 58, 34, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(31, 69, 72, 0.03) 0%, transparent 50%);
+}
+
+/* グレインテクスチャ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+}
+
+::selection { background: var(--accent); color: var(--bg); }
+
+/* ヘッダー */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 24px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  mix-blend-mode: multiply;
+}
+
+.top-nav .left, .top-nav .right {
+  display: flex;
+  gap: 32px;
+  color: var(--ink-soft);
+}
+
+.top-nav a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.top-nav a:hover { color: var(--accent); }
+
+/* メインコンテナ */
+main {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+section {
+  padding: 120px 48px;
+  position: relative;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 48px 120px;
+  position: relative;
+}
+
+.hero-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 48px;
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.hero-meta::before {
+  content: '';
+  display: inline-block;
+  width: 48px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'SOFT' 50, 'WONK' 1;
+  font-size: clamp(64px, 12vw, 200px);
+  font-weight: 350;
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  margin-bottom: 32px;
+  color: var(--ink);
+}
+
+.hero h1 em {
+  font-style: italic;
+  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+.hero-subtitle {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 36;
+  font-size: clamp(20px, 2.5vw, 32px);
+  font-weight: 380;
+  line-height: 1.3;
+  max-width: 760px;
+  margin-bottom: 64px;
+  color: var(--ink-soft);
+  letter-spacing: -0.005em;
+}
+
+.hero-lede {
+  max-width: 580px;
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.hero-lede p + p { margin-top: 16px; }
+
+.hero-marker {
+  position: absolute;
+  bottom: 48px;
+  left: 48px;
+  right: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.hero-marker .scroll-hint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-marker .scroll-hint::after {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--ink-muted);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: translateX(0); }
+  50% { opacity: 1; transform: translateX(8px); }
+}
+
+/* セクション共通 */
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.section-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+h2 {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 72, 'SOFT' 30;
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 320;
+  line-height: 1.0;
+  letter-spacing: -0.025em;
+  margin-bottom: 48px;
+  max-width: 800px;
+}
+
+h2 em {
+  font-style: italic;
+  font-variation-settings: 'opsz' 72, 'SOFT' 80, 'WONK' 1;
+  color: var(--accent);
+}
+
+h3 {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 36;
+  font-size: 28px;
+  font-weight: 420;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin-bottom: 16px;
+}
+
+.lede {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 24;
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 720px;
+  margin-bottom: 64px;
+  font-weight: 380;
+  letter-spacing: -0.005em;
+}
+
+p {
+  margin-bottom: 20px;
+  max-width: 720px;
+}
+
+p + p { margin-top: -8px; }
+
+strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+em {
+  font-style: italic;
+  color: var(--accent-deep);
+}
+
+code, .mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+/* 問題セクション */
+.problem-section {
+  background: var(--ink);
+  color: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.problem-section .section-label {
+  color: #E89878;
+}
+
+.problem-section .section-label::before {
+  background: #E89878;
+}
+
+.problem-section h2 {
+  color: var(--bg);
+  margin-bottom: 80px;
+}
+
+.problem-section h2 em {
+  color: #E89878;
+}
+
+.problems-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 48px;
+  margin-top: 64px;
+}
+
+.problem-card {
+  border-left: 1px solid rgba(242, 235, 221, 0.15);
+  padding-left: 24px;
+}
+
+.problem-card .number {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144;
+  font-size: 64px;
+  font-weight: 200;
+  color: #E89878;
+  line-height: 1;
+  margin-bottom: 16px;
+  letter-spacing: -0.04em;
+}
+
+.problem-card h4 {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 24;
+  font-size: 22px;
+  font-weight: 450;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.problem-card p {
+  font-size: 16px;
+  color: rgba(242, 235, 221, 0.7);
+  line-height: 1.6;
+}
+
+/* 三本柱 */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin: 80px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.pillar {
+  padding: 48px 32px;
+  border-right: 1px solid var(--rule);
+  position: relative;
+}
+
+.pillar:last-child { border-right: none; }
+
+.pillar-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 24px;
+}
+
+.pillar-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pillar h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.pillar .pillar-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.pillar p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+/* アーキテクチャ図 */
+.architecture {
+  margin: 80px 0;
+  padding: 64px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--rule);
+  position: relative;
+}
+
+.architecture::before {
+  content: 'FIG. 01';
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-muted);
+}
+
+.architecture-caption {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink-muted);
+  text-align: center;
+  margin-top: 24px;
+}
+
+.arch-svg {
+  width: 100%;
+  height: auto;
+  max-width: 800px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ユースケース */
+.use-cases {
+  margin: 80px 0;
+}
+
+.use-case {
+  border-top: 1px solid var(--rule);
+  padding: 48px 0;
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.use-case:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.use-case-number {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144;
+  font-size: 48px;
+  font-weight: 200;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.use-case-content h3 {
+  margin-bottom: 16px;
+}
+
+.use-case-content .scenario {
+  font-style: italic;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 20;
+  font-size: 18px;
+}
+
+.use-case-flow {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-left: 2px solid var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.use-case-flow .arrow {
+  color: var(--accent);
+  margin: 0 8px;
+}
+
+/* MCP セクション */
+.mcp-section {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-secondary) 100%);
+}
+
+.mcp-diagram {
+  margin: 64px auto;
+  max-width: 800px;
+}
+
+.mcp-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin: 64px 0;
+}
+
+.mcp-card {
+  padding: 32px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  position: relative;
+}
+
+.mcp-card.with-cpds {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.mcp-card .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 16px;
+}
+
+.mcp-card.with-cpds .label {
+  color: var(--accent);
+}
+
+.mcp-card h4 {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.mcp-card ul {
+  list-style: none;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.mcp-card li {
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.mcp-card li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--ink-muted);
+}
+
+.mcp-card.with-cpds li::before {
+  content: '✓';
+  color: var(--accent);
+}
+
+/* ステータス */
+.status-section {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.status-section h2 {
+  color: var(--bg);
+}
+
+.status-section h2 em {
+  color: #E89878;
+}
+
+.status-section .section-label {
+  color: #E89878;
+}
+
+.status-section .section-label::before {
+  background: #E89878;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 48px;
+  margin: 64px 0;
+}
+
+.status-card {
+  border-top: 2px solid #E89878;
+  padding-top: 24px;
+}
+
+.status-card .badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #E89878;
+  margin-bottom: 16px;
+}
+
+.status-card h4 {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.status-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(242, 235, 221, 0.7);
+}
+
+/* 引用ブロック */
+blockquote {
+  margin: 64px 0;
+  padding: 32px 48px;
+  border-left: 2px solid var(--accent);
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 36, 'SOFT' 30;
+  font-size: 28px;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+blockquote::before {
+  content: '"';
+  font-family: 'Fraunces', serif;
+  font-size: 80px;
+  color: var(--accent);
+  display: inline-block;
+  line-height: 0.4;
+  margin-right: 8px;
+  vertical-align: -10px;
+  font-style: normal;
+}
+
+/* フッター */
+footer {
+  padding: 64px 48px;
+  border-top: 1px solid var(--rule);
+  background: var(--bg-secondary);
+}
+
+footer .container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 64px;
+  align-items: end;
+}
+
+footer .colophon {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  line-height: 1.8;
+}
+
+footer .colophon strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+footer .signature {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+  section { padding: 80px 24px; }
+  .hero { padding: 60px 24px 80px; }
+  .top-nav { padding: 16px 24px; }
+  .top-nav .right { display: none; }
+  .pillars { grid-template-columns: 1fr; }
+  .pillar { border-right: none; border-bottom: 1px solid var(--rule); }
+  .pillar:last-child { border-bottom: none; }
+  .use-case { grid-template-columns: 1fr; gap: 24px; }
+  .mcp-comparison { grid-template-columns: 1fr; }
+  footer .container { grid-template-columns: 1fr; }
+  footer .signature { text-align: left; }
+  .architecture { padding: 32px 16px; }
+  blockquote { padding: 24px; font-size: 22px; }
+}
+
+/* アニメーション */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="left">
+    <span>CPDS / v0.4 / 2026</span>
+  </div>
+  <div class="right">
+    <a href="#problem">問題</a>
+    <a href="#solution">解</a>
+    <a href="#mechanism">仕組み</a>
+    <a href="#use-cases">事例</a>
+    <a href="#mcp">MCP</a>
+    <a href="#status">現状</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-meta">
+    <span>叩き台 v0.4</span>
+    <span>2026.05.20</span>
+    <span>Discussion Draft</span>
+  </div>
+
+  <h1>CPDS<em>.</em></h1>
+
+  <p class="hero-subtitle">
+    Content Provenance and Delegation Standard ──<br/>
+    AI 時代の <em>コンテンツの出所</em> と <em>責任</em> を可視化する規格。
+  </p>
+
+  <div class="hero-lede">
+    <p>誰がそれを作ったか。何の権限で動いたか。何かあったとき誰が責任を負うか。</p>
+    <p>法律ではなく、<em>市場の抑止力</em> で機能させる。ごまかすコストを上げ、正直であることが当たり前になる世界へ。</p>
+  </div>
+
+  <div class="hero-marker">
+    <span>§ 序</span>
+    <span class="scroll-hint">SCROLL TO READ</span>
+  </div>
+</section>
+
+<!-- 問題 -->
+<section class="problem-section" id="problem">
+  <div class="container">
+    <div class="section-label"><span class="section-number">01</span> 問題の所在</div>
+    <h2>すべてが <em>境界を失っている</em>。</h2>
+
+    <p class="lede" style="color: rgba(242, 235, 221, 0.85);">
+      生成 AI の普及は、コンテンツの出所を不透明にした。人間と AI の境界、創作者と利用者の境界、責任者と無責任者の境界 ── これらが同時に溶けつつある。
+    </p>
+
+    <div class="problems-grid">
+      <div class="problem-card">
+        <div class="number">i</div>
+        <h4>クリエイターの無防備</h4>
+        <p>人間の作品が、AI の学習データとして無断で吸われる。盗作されても発覚しにくい。</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="number">ii</div>
+        <h4>真偽の崩壊</h4>
+        <p>AI 生成コンテンツが、人間の作品として流通する。読者は区別できない。</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="number">iii</div>
+        <h4>責任の蒸発</h4>
+        <p>AI による誹謗中傷、なりすまし、フェイクの発信者が辿れない。誰が責任を負うのか不明。</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="number">iv</div>
+        <h4>委任の不透明性</h4>
+        <p>AI が代理で行った行為について、本人の意図の範囲だったのか、暴走だったのかが判定できない。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 解決 -->
+<section id="solution">
+  <div class="container">
+    <div class="section-label"><span class="section-number">02</span> 中核となる発想</div>
+    <h2>すべてのコンテンツに、<em>出所</em> を刻む。</h2>
+
+    <p class="lede">
+      法律で禁じるのではなく、出所をごまかすと <strong>市場価値が下がる構造</strong> を作る。Bad money drives out good ── これを逆転させる。
+    </p>
+
+    <blockquote>
+      ルールがあるだけで抑止力になる。盗作とわかるコンテンツを上げても、コンテンツの価値が下がるだけだから。
+    </blockquote>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="28" stroke="#B53A22" stroke-width="1.5"/>
+            <path d="M22 32 L29 39 L42 26" stroke="#1A1714" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="32" cy="14" r="2" fill="#B53A22"/>
+            <circle cx="32" cy="50" r="2" fill="#B53A22"/>
+          </svg>
+        </div>
+        <div class="pillar-name">PROVENANCE</div>
+        <h3>出所証明</h3>
+        <p>コンテンツに改ざん不可能なメタデータを付与する。Human/AI/Hybrid の区分、作成者、編集履歴、責任者を記録。</p>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 64 64" fill="none">
+            <rect x="12" y="20" width="14" height="14" stroke="#B53A22" stroke-width="1.5"/>
+            <rect x="38" y="20" width="14" height="14" stroke="#B53A22" stroke-width="1.5"/>
+            <rect x="25" y="42" width="14" height="14" stroke="#1A1714" stroke-width="1.5"/>
+            <path d="M19 34 L19 42 L32 42" stroke="#1A1714" stroke-width="1" stroke-dasharray="2 2"/>
+            <path d="M45 34 L45 42 L32 42" stroke="#1A1714" stroke-width="1" stroke-dasharray="2 2"/>
+          </svg>
+        </div>
+        <div class="pillar-name">DELEGATION</div>
+        <h3>委任の連鎖</h3>
+        <p>AI が代理した場合、誰の権限で、どの範囲で動作したかを署名付きで記録。ツール使用も含めた多段の委任を辿れる。</p>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M32 8 L52 20 L52 44 L32 56 L12 44 L12 20 Z" stroke="#B53A22" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="6" fill="#1A1714"/>
+            <path d="M32 20 L32 26 M32 38 L32 44 M20 32 L26 32 M38 32 L44 32" stroke="#1A1714" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="pillar-name">REGISTRY</div>
+        <h3>検証可能性</h3>
+        <p>第三者が運営する公的台帳に登録され、誰でも改ざん検出と類似度検索ができる。フェデレーション型で運営。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 仕組み -->
+<section id="mechanism" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-label"><span class="section-number">03</span> 仕組み</div>
+    <h2>3 つのレイヤーで <em>多層防御</em>。</h2>
+
+    <p class="lede">
+      単一の技術に依存しない。透かし、ハッシュ登録、社会的ラベル ── それぞれが他の層を補完する。
+    </p>
+
+    <div class="architecture">
+      <svg class="arch-svg" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#1A1714"/>
+          </marker>
+        </defs>
+
+        <!-- Layer 1: Content -->
+        <g>
+          <rect x="100" y="40" width="600" height="80" fill="#F2EBDD" stroke="#1A1714" stroke-width="1.5"/>
+          <text x="120" y="68" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2" fill="#8A7F70">CONTENT</text>
+          <text x="400" y="90" text-anchor="middle" font-family="Fraunces, serif" font-size="20" font-style="italic" fill="#1A1714">テキスト / 画像 / 動画 / コード</text>
+        </g>
+
+        <!-- Down arrow 1 -->
+        <line x1="400" y1="125" x2="400" y2="155" stroke="#B53A22" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Layer 2: Embedded -->
+        <g>
+          <rect x="100" y="160" width="600" height="80" fill="#E8DFCC" stroke="#1A1714" stroke-width="1.5"/>
+          <text x="120" y="188" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2" fill="#B53A22">EMBEDDED LAYER</text>
+          <text x="225" y="218" text-anchor="middle" font-family="Newsreader, serif" font-size="14" fill="#1A1714">透かし</text>
+          <text x="400" y="218" text-anchor="middle" font-family="Newsreader, serif" font-size="14" fill="#1A1714">C2PA メタデータ</text>
+          <text x="575" y="218" text-anchor="middle" font-family="Newsreader, serif" font-size="14" fill="#1A1714">ゼロ幅文字</text>
+        </g>
+
+        <!-- Down arrow 2 -->
+        <line x1="400" y1="245" x2="400" y2="275" stroke="#B53A22" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Layer 3: Metadata -->
+        <g>
+          <rect x="100" y="280" width="600" height="80" fill="#1A1714" stroke="#1A1714" stroke-width="1.5"/>
+          <text x="120" y="308" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2" fill="#E89878">METADATA LAYER</text>
+          <text x="265" y="338" text-anchor="middle" font-family="Newsreader, serif" font-size="14" fill="#F2EBDD">Provenance Record</text>
+          <text x="535" y="338" text-anchor="middle" font-family="Newsreader, serif" font-size="14" fill="#F2EBDD">Delegation Certificate</text>
+        </g>
+
+        <!-- Down arrow 3 -->
+        <line x1="400" y1="365" x2="400" y2="395" stroke="#B53A22" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Layer 4: Registry -->
+        <g>
+          <rect x="100" y="400" width="600" height="60" fill="#F2EBDD" stroke="#B53A22" stroke-width="2"/>
+          <text x="120" y="425" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2" fill="#B53A22">REGISTRY LAYER</text>
+          <text x="400" y="445" text-anchor="middle" font-family="Fraunces, serif" font-size="16" font-style="italic" fill="#1A1714">Provenance Registry / フェデレーション分散運用</text>
+        </g>
+
+      </svg>
+      <div class="architecture-caption">3 層の連携 ── コンテンツに対する出所証明のスタック構造</div>
+    </div>
+
+    <h3>視覚指標</h3>
+    <p>エンドユーザーは認証マークの色を見るだけで、出所の概略がわかる。</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px; margin: 32px 0;">
+      <div style="text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #2F7D32; margin: 0 auto 12px;"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--ink-muted);">HUMAN</div>
+        <div style="font-size: 14px; color: var(--ink-soft); margin-top: 4px;">人間が作成、検証済み</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #1F5BA8; margin: 0 auto 12px;"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--ink-muted);">AI</div>
+        <div style="font-size: 14px; color: var(--ink-soft); margin-top: 4px;">AI が生成、責任者明示</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #6B3E91; margin: 0 auto 12px;"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--ink-muted);">HYBRID</div>
+        <div style="font-size: 14px; color: var(--ink-soft); margin-top: 4px;">人間と AI の協働</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #B58A2C; margin: 0 auto 12px;"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--ink-muted);">PARTIAL</div>
+        <div style="font-size: 14px; color: var(--ink-soft); margin-top: 4px;">情報の一部欠落</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #999088; margin: 0 auto 12px;"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--ink-muted);">UNKNOWN</div>
+        <div style="font-size: 14px; color: var(--ink-soft); margin-top: 4px;">Provenance なし</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #B53A22; margin: 0 auto 12px;"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--ink-muted);">INVALID</div>
+        <div style="font-size: 14px; color: var(--ink-soft); margin-top: 4px;">改ざん検出 / 無効</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ユースケース -->
+<section id="use-cases">
+  <div class="container">
+    <div class="section-label"><span class="section-number">04</span> 適用事例</div>
+    <h2>具体的に <em>何が変わるか</em>。</h2>
+
+    <div class="use-cases">
+
+      <div class="use-case">
+        <div class="use-case-number">01</div>
+        <div class="use-case-content">
+          <h3>AI 代筆の透明化</h3>
+          <p class="scenario">"私の AI が、私の代わりに業務連絡を投稿してくれた"</p>
+          <p>投稿には委任証明書が添付され、責任は委任元の人間に明示される。「AI が勝手にやった」と言い逃れできない。読者は誰の責任で発信されたかを瞬時に把握。</p>
+        </div>
+        <div class="use-case-flow">
+          User <span class="arrow">→</span> Delegation 発行<br/>
+          AI <span class="arrow">→</span> 投稿 + Provenance<br/>
+          Platform <span class="arrow">→</span> 検証 + ラベル付与<br/>
+          Reader <span class="arrow">→</span> 「AI / 委任者明示」表示
+        </div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-number">02</div>
+        <div class="use-case-content">
+          <h3>クリエイター作品の保護</h3>
+          <p class="scenario">"自分の絵が、勝手に AI に学習されたくない"</p>
+          <p>イラストレーターは作品に <code>ai_training_allowed: false</code> を宣言できる。後日類似 AI 作品が登場した場合、Registry で類似度を検証し、無断学習の責任を追及できる。</p>
+        </div>
+        <div class="use-case-flow">
+          Creator <span class="arrow">→</span> 作品 + 学習禁止宣言<br/>
+          Registry <span class="arrow">→</span> ハッシュ登録<br/>
+          (後日)<span class="arrow">→</span> 類似コンテンツを検索<br/>
+          発見時 <span class="arrow">→</span> AI 提供者の責任追及
+        </div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-number">03</div>
+        <div class="use-case-content">
+          <h3>ニュース記事の出所証明</h3>
+          <p class="scenario">"AI 生成のフェイクではない、人間の記者が書いた記事だ"</p>
+          <p>メディア社の組織署名と、執筆者・編集者の記録が記事に紐づく。AI 生成のフェイクニュースサイトが同じスタイルで偽装しても、Provenance がないため信頼指標で差別化される。</p>
+        </div>
+        <div class="use-case-flow">
+          Journalist <span class="arrow">→</span> 執筆 + 編集履歴<br/>
+          Media <span class="arrow">→</span> 組織署名で公証<br/>
+          Registry <span class="arrow">→</span> 改ざん不可能な登録<br/>
+          Reader <span class="arrow">→</span> 緑色マーク表示
+        </div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-number">04</div>
+        <div class="use-case-content">
+          <h3>AI 同士の交渉と合意</h3>
+          <p class="scenario">"私の AI と相手の AI が、人間を介さず予定を確定させた"</p>
+          <p>両者の AI が委任証明書を交換し、合意内容を構造化形式で記録。両者の Registry に同期され、「言った言わない」を防ぐ法的証拠になる。</p>
+        </div>
+        <div class="use-case-flow">
+          AI-A <span class="arrow">→</span> PROPOSE + Delegation<br/>
+          AI-B <span class="arrow">→</span> 検証 → ACCEPT<br/>
+          Both <span class="arrow">→</span> 合意を Registry に登録<br/>
+          (将来) <span class="arrow">→</span> 紛争時の証拠
+        </div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-number">05</div>
+        <div class="use-case-content">
+          <h3>MCP ツール使用の透明化</h3>
+          <p class="scenario">"AI が記事を書いた。どの情報源を参照したか辿れる"</p>
+          <p>AI が MCP 経由で Web 検索ツールを使った場合、その使用記録が Provenance に刻まれる。読者は記事 → AI → ツール → 一次情報源、と遡って検証できる。誤情報の責任を切り分けられる。</p>
+        </div>
+        <div class="use-case-flow">
+          User <span class="arrow">→</span> AI: "記事を書いて"<br/>
+          AI <span class="arrow">→</span> MCP: Sub-Delegation + 検索<br/>
+          MCP <span class="arrow">→</span> 結果 + Provenance<br/>
+          Reader <span class="arrow">→</span> 連鎖を完全可視化
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- MCP -->
+<section class="mcp-section" id="mcp">
+  <div class="container">
+    <div class="section-label"><span class="section-number">05</span> MCP との統合</div>
+    <h2>既存の AI エコシステムに <em>そっと載る</em>。</h2>
+
+    <p class="lede">
+      Model Context Protocol(MCP)は AI がツールを使うための規格として広く採用された。だが「ツール経由で生成されたコンテンツの出所追跡」には対応していない。CPDS は MCP の上に出所と委任のレイヤーを乗せる。
+    </p>
+
+    <div class="mcp-comparison">
+      <div class="mcp-card">
+        <div class="label">現状 / MCP のみ</div>
+        <h4>ツールは使えるが、追跡不能</h4>
+        <ul>
+          <li>AI がどのツールを使ったか記録なし</li>
+          <li>ツールが返したデータの出所が不明</li>
+          <li>悪意ある MCP サーバーの検出困難</li>
+          <li>誤情報の責任切り分けができない</li>
+          <li>サブ委任の概念がない</li>
+        </ul>
+      </div>
+
+      <div class="mcp-card with-cpds">
+        <div class="label">CPDS + MCP</div>
+        <h4>連鎖が完全に透明</h4>
+        <ul>
+          <li>すべてのツール呼び出しが署名付きで記録</li>
+          <li>ツールが返したデータに出所メタデータ</li>
+          <li>MCP サーバーが DID で認証される</li>
+          <li>誤情報の責任を切り分け可能</li>
+          <li>多段委任を数学的に検証</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>後方互換性</h3>
+    <p>CPDS フィールドは MCP メッセージに <code>_cpds</code> プレフィックスで追加される。アンダースコア前置きにより、CPDS 非対応の実装は自動的に無視できる。既存の MCP エコシステムを壊さない。</p>
+
+    <h3>双方向の統合</h3>
+    <p>逆方向の統合も可能 ── <strong>CPDS 機能自体を MCP サーバーとして提供</strong>する。Anthropic、OpenAI、Google など、あらゆる MCP 対応 AI が同じ CPDS サービスを使えるようになる。MCP の普及度と CPDS の普及度が相互に高め合う。</p>
+  </div>
+</section>
+
+<!-- ステータス -->
+<section class="status-section" id="status">
+  <div class="container">
+    <div class="section-label"><span class="section-number">06</span> 現状</div>
+    <h2>これは <em>叩き台</em> である。</h2>
+
+    <p class="lede" style="color: rgba(242, 235, 221, 0.85);">
+      v0.4 は議論の出発点であり、完成された仕様ではない。多くの未解決論点と、想定される反論がある。それらを隠さず公開することで、より良い規格へ進化させる。
+    </p>
+
+    <div class="status-grid">
+      <div class="status-card">
+        <div class="badge">DONE</div>
+        <h4>v0.4 で完成した部分</h4>
+        <p>データモデル、署名と検証、テキスト透かしの多層設計、MCP 統合、サブ委任のセキュリティ、Registry ガバナンス、認証マークの運用、5 つのユースケース。</p>
+      </div>
+
+      <div class="status-card">
+        <div class="badge">OPEN</div>
+        <h4>未解決の論点</h4>
+        <p>Provenance Registry の運営主体。Creator: Human の自己申告検証。既存コンテンツへの遡及適用。国際的な相互運用性。サブ委任連鎖の深度制限。</p>
+      </div>
+
+      <div class="status-card">
+        <div class="badge">NEXT</div>
+        <h4>次のステップ</h4>
+        <p>リファレンス実装(Python/Rust)。C2PA コミュニティへの提案。Anthropic・OpenAI など主要 AI 企業との対話。標準化団体(W3C、IETF)への持ち込み。</p>
+      </div>
+    </div>
+
+    <blockquote style="border-color: #E89878; color: rgba(242, 235, 221, 0.9);">
+      完璧な規格を待つよりも、不完全な規格で議論を始める方が、現状を変える可能性がある。
+    </blockquote>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="colophon">
+      <div><strong>CPDS</strong> — Content Provenance and Delegation Standard</div>
+      <div>叩き台 v0.4 / 2026.05.20</div>
+      <div>Discussion Draft — 批判・修正・反論を歓迎</div>
+      <div style="margin-top: 16px;">Set in Fraunces, Newsreader, JetBrains Mono</div>
+    </div>
+    <div class="signature">
+      § Fin.
+    </div>
+  </div>
+</footer>
+
+<script>
+// スクロール時のフェードイン
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('section').forEach(el => {
+  el.classList.add('fade-in');
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>
